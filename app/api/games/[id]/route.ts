@@ -34,20 +34,28 @@ async function getAccessToken(): Promise<string> {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const gameId = params.id
+    const { id: gameId } = await params
     console.log('[v0] Fetching game detail for ID:', gameId)
 
-    const accessToken = await getAccessToken()
+    // Parallel fetch: IGDB token and Local Backend data
+    const [accessToken, localGameResponse] = await Promise.all([
+      getAccessToken(),
+      fetch(`http://localhost:8000/games/${gameId}`).then(res => res.ok ? res.json() : null).catch(err => {
+        console.error('Failed to fetch from local backend:', err);
+        return null;
+      })
+    ])
 
     // Fetch game details with more comprehensive data
     const gameResponse = await fetch('https://api.igdb.com/v4/games', {
       method: 'POST',
       headers: {
         'Client-ID': IGDB_CLIENT_ID!,
-        Authorization: `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'text/plain',
       },
       body: `fields name, cover.image_id, genres.name, first_release_date, platforms.name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, artworks.image_id, videos.video_id, videos.name; where id = ${gameId};`,
     })
@@ -132,7 +140,7 @@ export async function GET(
         : game.cover?.image_id
           ? `https://images.igdb.com/igdb/image/upload/t_1080p/${game.cover.image_id}.jpg`
           : '/placeholder.svg',
-      status: 'Active',
+
       platforms: game.platforms?.map((p: { name: string }) => p.name).slice(0, 5) || [],
       releaseYear: game.first_release_date
         ? new Date(game.first_release_date * 1000).getFullYear()
@@ -141,9 +149,12 @@ export async function GET(
       description: game.summary || '',
       developer,
       publisher,
-      lastEngaged: '2 days ago',
+      lastEngaged: '2 days ago', // TODO: this could also come from backend
       timeline,
       videos,
+      playthroughUrl: localGameResponse?.playthrough_video_url,
+      status: localGameResponse?.status || 'Backlog',
+      // Override title/rating if available from backend? Maybe not for now.
     }
 
     console.log('[v0] Game detail fetched successfully:', gameDetail.title)

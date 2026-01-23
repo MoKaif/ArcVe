@@ -111,7 +111,7 @@ const mockGames: Game[] = [
 ]
 
 export default function HomePage() {
-  const [games, setGames] = useState<Game[]>(mockGames)
+  const [games, setGames] = useState<Game[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<GameStatus | 'All'>('All')
@@ -126,13 +126,13 @@ export default function HomePage() {
     async function fetchGames() {
       setIsLoading(true)
       console.log('[v0] Fetching games from IGDB API...')
-      
+
       try {
         const response = await fetch('/api/games')
         if (!response.ok) {
           throw new Error('Failed to fetch games')
         }
-        
+
         const data = await response.json()
         console.log('[v0] Received games:', data.length)
         setGames(data)
@@ -148,17 +148,48 @@ export default function HomePage() {
     fetchGames()
   }, [])
 
-  const handleAddGame = (newGame: any) => {
+  const handleAddGame = async (newGame: any) => {
     console.log('[v0] Adding new game to library:', newGame.title)
-    const gameToAdd: Game = {
-      id: newGame.id,
+
+    // Construct database model payload
+    const payload = {
+      igdb_id: parseInt(newGame.id),
       title: newGame.title,
-      coverImage: newGame.coverImage,
+      cover_image: newGame.coverImage,
       status: 'Backlog',
-      platforms: [],
-      lastEngaged: 'Just now',
+      platforms: newGame.platforms ? newGame.platforms.join(',') : '', // Assuming we get platforms from search? or default empty
+      release_year: newGame.releaseYear,
+      genres: newGame.genres ? newGame.genres.join(',') : '',
+      description: newGame.description,
+      last_engaged: 'Just now'
     }
-    setGames([gameToAdd, ...games])
+
+    try {
+      const response = await fetch('http://localhost:8000/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save game to backend')
+      }
+
+      const savedGame = await response.json()
+
+      const gameToAdd: Game = {
+        id: savedGame.igdb_id.toString(),
+        title: savedGame.title,
+        coverImage: savedGame.cover_image || '/placeholder.svg',
+        status: savedGame.status as GameStatus,
+        platforms: savedGame.platforms ? savedGame.platforms.split(',') : [],
+        lastEngaged: savedGame.last_engaged,
+      }
+      setGames([gameToAdd, ...games])
+    } catch (error) {
+      console.error('[v0] Error saving game:', error)
+      // Optionally show toast error
+    }
   }
 
   // Filter and sort games

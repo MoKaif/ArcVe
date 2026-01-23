@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { HeroSection } from '@/components/game-detail/hero-section'
 import { ActivityTimeline } from '@/components/game-detail/activity-timeline'
 import { MediaSection } from '@/components/game-detail/media-section'
+import { EditGameModal } from '@/components/game-detail/edit-game-modal'
 import type { GameDetail } from '@/types/game'
 
 export default function GameDetailPage() {
@@ -14,6 +15,7 @@ export default function GameDetailPage() {
   const router = useRouter()
   const [game, setGame] = useState<GameDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   useEffect(() => {
     async function fetchGameDetail() {
@@ -69,7 +71,7 @@ export default function GameDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Back Button */}
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Button
           variant="ghost"
           size="sm"
@@ -78,6 +80,9 @@ export default function GameDetailPage() {
         >
           <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-[-2px]" />
           Back to Library
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => setIsEditModalOpen(true)}>
+          Edit Game
         </Button>
       </div>
 
@@ -89,11 +94,33 @@ export default function GameDetailPage() {
         <ActivityTimeline timeline={game.timeline} />
       )}
 
+      {/* Playthrough Section */}
+      {game.playthroughUrl && (
+        <section className="container mx-auto px-4 py-8">
+          <h3 className="text-xl font-bold mb-4 text-foreground">My Playthrough</h3>
+          <div className="aspect-video w-full max-w-4xl mx-auto rounded-lg overflow-hidden bg-black border border-border shadow-lg">
+            <iframe
+              src={game.playthroughUrl.includes('watch?v=') ? game.playthroughUrl.replace('watch?v=', 'embed/') : game.playthroughUrl}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </section>
+      )}
+
       {/* Media Section */}
       {game.videos && game.videos.length > 0 && <MediaSection videos={game.videos} />}
 
       {/* Spacer */}
       <div className="h-20" />
+
+      <EditGameModal
+        game={game}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onGameUpdated={(updatedGame) => setGame(updatedGame)}
+      />
     </div>
   )
 }

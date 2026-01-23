@@ -18,6 +18,7 @@ export interface GameDetail extends Game {
   coverArtwork?: string
   timeline?: TimelineEntry[]
   videos?: GameVideo[]
+  playthroughUrl?: string
 }
 
 export interface TimelineEntry {
