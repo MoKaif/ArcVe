@@ -3,8 +3,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { FilterBar } from '@/components/filter-bar'
 import { GameGrid } from '@/components/game-grid'
-import { SearchBar } from '@/components/search-bar'
 import { StatsOverview } from '@/components/stats-overview'
+import { AddGameModal } from '@/components/add-game/add-game-modal'
 import type { Game, GameStatus } from '@/types/game'
 import { Gamepad2, Loader2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -118,6 +118,7 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<'lastEngaged' | 'alphabetical' | 'recentlyAdded'>(
     'lastEngaged'
   )
+  const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false)
   const searchParams = useSearchParams()
 
   // Fetch games from IGDB API
@@ -146,6 +147,19 @@ export default function HomePage() {
 
     fetchGames()
   }, [])
+
+  const handleAddGame = (newGame: any) => {
+    console.log('[v0] Adding new game to library:', newGame.title)
+    const gameToAdd: Game = {
+      id: newGame.id,
+      title: newGame.title,
+      coverImage: newGame.coverImage,
+      status: 'Backlog',
+      platforms: [],
+      lastEngaged: 'Just now',
+    }
+    setGames([gameToAdd, ...games])
+  }
 
   // Filter and sort games
   const filteredGames = useMemo(() => {
@@ -235,13 +249,6 @@ export default function HomePage() {
           }}
         />
 
-        {/* Search Bar */}
-        <SearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onAddGame={() => console.log('[v0] Add game clicked')}
-        />
-
         {/* Filter Bar */}
         <FilterBar
           searchQuery={searchQuery}
@@ -250,6 +257,7 @@ export default function HomePage() {
           onStatusFilterChange={setStatusFilter}
           sortBy={sortBy}
           onSortByChange={setSortBy}
+          onAddGame={() => setIsAddGameModalOpen(true)}
         />
 
         {/* Game Grid */}
@@ -266,6 +274,13 @@ export default function HomePage() {
           />
         )}
       </main>
+
+      {/* Add Game Modal */}
+      <AddGameModal
+        isOpen={isAddGameModalOpen}
+        onClose={() => setIsAddGameModalOpen(false)}
+        onGameAdded={handleAddGame}
+      />
     </div>
   )
 }
