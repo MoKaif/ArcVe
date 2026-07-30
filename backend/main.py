@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlmodel import Session, select
 from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables, get_session
-from models import Game, PlaytimeSnapshot, SteamAppMapping
+from models import Game, GameUpdate, PlaytimeSnapshot, SteamAppMapping
 from contextlib import asynccontextmanager
 
 import steam
@@ -78,6 +78,31 @@ def get_game(igdb_id: int, session: Session = Depends(get_session)):
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     return game
+
+@app.patch("/games/{igdb_id}")
+def update_game(igdb_id: int, patch: GameUpdate, session: Session = Depends(get_session)):
+    """Partial update — only fields present in the request body are written.
+
+    POST /games is a full upsert and blanks any field the caller omits, which
+    makes it unsafe for editing one attribute at a time. Use this instead.
+    """
+    game = session.exec(select(Game).where(Game.igdb_id == igdb_id)).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    changes = patch.model_dump(exclude_unset=True)
+    for field, value in changes.items():
+        setattr(game, field, value)
+
+    # Any hand-edited status must survive the next Steam sync.
+    if "status" in changes:
+        game.status_locked = True
+
+    session.add(game)
+    session.commit()
+    session.refresh(game)
+    return game
+
 
 @app.delete("/games/{igdb_id}")
 def delete_game(igdb_id: int, session: Session = Depends(get_session)):

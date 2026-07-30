@@ -16,6 +16,7 @@ _GAME_COLUMNS = [
     ("achievements_unlocked", "INTEGER"),
     ("achievements_total", "INTEGER"),
     ("status_locked", "BOOLEAN NOT NULL DEFAULT FALSE"),
+    ("manual_playtime_minutes", "INTEGER"),
 ]
 
 

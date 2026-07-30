@@ -30,6 +30,29 @@ class Game(SQLModel, table=True):
     # When true, sync will not overwrite `status` — lets you pin "Finished",
     # which Steam has no way of knowing.
     status_locked: bool = Field(default=False)
+    # Hours you enter by hand. The only playtime source for console, emulated and
+    # other non-Steam titles, which Steam obviously cannot report.
+    manual_playtime_minutes: Optional[int] = None
+
+
+class GameUpdate(SQLModel):
+    """Partial update payload.
+
+    Every field is optional and only explicitly-supplied ones are written, so
+    editing a single field cannot blank out the rest of a game's metadata.
+    """
+    title: Optional[str] = None
+    status: Optional[str] = None
+    user_rating: Optional[float] = None
+    notes: Optional[str] = None
+    playthrough_video_url: Optional[str] = None
+    cover_image: Optional[str] = None
+    release_year: Optional[int] = None
+    platforms: Optional[str] = None
+    genres: Optional[str] = None
+    description: Optional[str] = None
+    last_engaged: Optional[str] = None
+    manual_playtime_minutes: Optional[int] = None
 
 
 class PlaytimeSnapshot(SQLModel, table=True):

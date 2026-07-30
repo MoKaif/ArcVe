@@ -64,14 +64,25 @@ export async function GET(request: NextRequest) {
 
     const games = await response.json()
 
-    // Transform backend data to frontend Game interface
+    // Transform backend data to frontend Game interface. The metadata fields come
+    // through so a card can show what is missing and offer to fill it in.
     const transformedGames = games.map((game: any) => ({
       id: game.igdb_id.toString(),
       title: game.title,
-      coverImage: game.cover_image || '/placeholder.svg',
+      coverImage: game.cover_image || '/logo.png',
       status: game.status,
-      platforms: game.platforms ? game.platforms.split(',') : [],
-      lastEngaged: game.last_engaged
+      platforms: game.platforms ? game.platforms.split(',').filter(Boolean) : [],
+      lastEngaged: game.last_engaged,
+      releaseYear: game.release_year ?? undefined,
+      genres: game.genres ? game.genres.split(',').filter(Boolean) : [],
+      description: game.description ?? undefined,
+      notes: game.notes ?? undefined,
+      userRating: game.user_rating ?? undefined,
+      playthroughUrl: game.playthrough_video_url ?? undefined,
+      steamAppid: game.steam_appid ?? undefined,
+      playtimeMinutes: game.playtime_minutes ?? undefined,
+      manualPlaytimeMinutes: game.manual_playtime_minutes ?? undefined,
+      achievementPct: game.achievement_pct ?? undefined,
     }))
 
     return NextResponse.json(transformedGames)
