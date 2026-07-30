@@ -9,7 +9,7 @@ import type { Game, GameStatus } from '@/types/game'
 import { Gamepad2, Loader2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
-import { SteamPanel } from '@/components/steam/steam-panel'
+import { SteamButton } from '@/components/steam/steam-button'
 import Loading from './loading'
 
 export default function HomePage() {
@@ -124,26 +124,15 @@ export default function HomePage() {
     if (sortBy === 'alphabetical') {
       sorted.sort((a, b) => a.title.localeCompare(b.title))
     } else if (sortBy === 'lastEngaged') {
-      // This is a simple example - you would implement proper date comparison
-      const engagementPriority: Record<string, number> = {
-        '1 hour ago': 1,
-        '2 days ago': 2,
-        '3 days ago': 3,
-        '5 days ago': 4,
-        '1 week ago': 5,
-        '3 weeks ago': 6,
-        '1 month ago': 7,
-        '2 months ago': 8,
-        '4 months ago': 9,
-        '6 months ago': 10,
-        '1 year ago': 11,
-        Never: 12,
+      // lastEngaged holds an ISO date (Steam sync writes rtime_last_played). An
+      // earlier version matched against relative strings like '2 days ago', which
+      // no longer occur, so every lookup missed and the sort did nothing.
+      const engagedAt = (game: Game) => {
+        if (!game.lastEngaged) return 0
+        const parsed = Date.parse(game.lastEngaged)
+        return Number.isNaN(parsed) ? 0 : parsed
       }
-      sorted.sort(
-        (a, b) =>
-          (engagementPriority[a.lastEngaged || 'Never'] || 99) -
-          (engagementPriority[b.lastEngaged || 'Never'] || 99)
-      )
+      sorted.sort((a, b) => engagedAt(b) - engagedAt(a))
     }
     // recentlyAdded would use creation date in real implementation
 
@@ -179,7 +168,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <SteamPanel />
+              <SteamButton />
             </div>
           </div>
         </div>
@@ -219,6 +208,9 @@ export default function HomePage() {
             games={filteredGames}
             onViewDetails={handleViewDetails}
             onViewMedia={handleViewMedia}
+            onGameUpdated={(updated) =>
+              setGames((prev) => prev.map((g) => (g.id === updated.id ? updated : g)))
+            }
           />
         )}
       </main>
