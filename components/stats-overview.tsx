@@ -51,20 +51,21 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
         return (
           <Card
             key={stat.label}
-            className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all hover:border-border hover:bg-card/80"
+            className="group relative overflow-hidden border-white/5 bg-card/40 backdrop-blur-xl transition-all duration-500 hover:border-primary/50 hover:bg-card/60 hover:shadow-2xl hover:shadow-primary/10"
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 transition-opacity group-hover:opacity-100`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-20 transition-opacity duration-500 group-hover:opacity-40`} />
             <div className="relative p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="mt-2 text-3xl font-bold">{stat.value}</p>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80">{stat.label}</p>
+                  <p className="text-3xl font-black tracking-tight text-foreground">{stat.value}</p>
                 </div>
-                <div className={`rounded-lg bg-background/50 p-3 ${stat.iconColor}`}>
+                <div className={`rounded-xl bg-background/40 p-3 shadow-inner ring-1 ring-white/10 ${stat.iconColor} transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
                   <Icon className="h-6 w-6" />
                 </div>
               </div>
             </div>
+            <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-gradient-to-r from-transparent via-primary to-transparent transition-all duration-700 group-hover:w-full" />
           </Card>
         )
       })}

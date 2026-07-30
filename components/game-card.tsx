@@ -44,7 +44,7 @@ export function GameCard({ game, onViewDetails, onViewMedia }: GameCardProps) {
       {/* Cover Image */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted/30">
         <Image
-          src={game.coverImage || "/placeholder.svg"}
+          src={game.coverImage || "/logo.png"}
           alt={game.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, (max-width: 1536px) 16vw, 14vw"
