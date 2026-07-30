@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "start:all": "./run.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
