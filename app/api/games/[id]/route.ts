@@ -32,6 +32,8 @@ async function getAccessToken(): Promise<string> {
   return cachedToken.token
 }
 
+const INTERNAL_BACKEND_URL = process.env.INTERNAL_BACKEND_URL || 'http://localhost:8000'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,7 +45,7 @@ export async function GET(
     // Parallel fetch: IGDB token and Local Backend data
     const [accessToken, localGameResponse] = await Promise.all([
       getAccessToken(),
-      fetch(`http://localhost:8000/games/${gameId}`).then(res => res.ok ? res.json() : null).catch(err => {
+      fetch(`${INTERNAL_BACKEND_URL}/games/${gameId}`).then(res => res.ok ? res.json() : null).catch(err => {
         console.error('Failed to fetch from local backend:', err);
         return null;
       })
@@ -162,5 +164,28 @@ export async function GET(
   } catch (error) {
     console.error('[v0] Error fetching game detail:', error)
     return NextResponse.json({ error: 'Failed to fetch game details' }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: gameId } = await params
+    console.log('[v0] Proxying DELETE to backend for ID:', gameId)
+
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/games/${gameId}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to delete from backend')
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('[v0] Error deleting game:', error)
+    return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 })
   }
 }

@@ -42,7 +42,7 @@ export function EditGameModal({ game, isOpen, onClose, onGameUpdated }: EditGame
                 // Actually GameDetail has them.
             }
 
-            const response = await fetch('http://localhost:8000/games', {
+            const response = await fetch('/api/games', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

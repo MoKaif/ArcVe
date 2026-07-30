@@ -42,6 +42,8 @@ async function getAccessToken(): Promise<string> {
   return cachedToken
 }
 
+const INTERNAL_BACKEND_URL = process.env.INTERNAL_BACKEND_URL || 'http://localhost:8000'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     // Otherwise, fetch from local backend (Library view)
     console.log('[v0] Fetching games from local backend...')
-    const response = await fetch('http://localhost:8000/games')
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/games`)
 
     if (!response.ok) {
       throw new Error('Failed to fetch from backend')
@@ -77,6 +79,32 @@ export async function GET(request: NextRequest) {
     console.error('[v0] Error fetching games:', error)
     return NextResponse.json(
       { error: 'Failed to fetch games' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    console.log('[v0] Proxying POST to backend...')
+
+    const response = await fetch(`${INTERNAL_BACKEND_URL}/games`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to save to backend')
+    }
+
+    const savedGame = await response.json()
+    return NextResponse.json(savedGame)
+  } catch (error) {
+    console.error('[v0] Error saving game:', error)
+    return NextResponse.json(
+      { error: 'Failed to save game' },
       { status: 500 }
     )
   }
