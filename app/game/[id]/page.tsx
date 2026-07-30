@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { HeroSection } from '@/components/game-detail/hero-section'
 import { ActivityTimeline } from '@/components/game-detail/activity-timeline'
 import { MediaSection } from '@/components/game-detail/media-section'
-import { EditGameModal } from '@/components/game-detail/edit-game-modal'
+import { MetadataModal } from '@/components/game-detail/metadata-modal'
+import { GameFacts } from '@/components/game-detail/game-facts'
 import type { GameDetail } from '@/types/game'
 
 export default function GameDetailPage() {
@@ -89,6 +90,9 @@ export default function GameDetailPage() {
       {/* Hero Section */}
       <HeroSection game={game} />
 
+      {/* Static details, with prompts for anything missing */}
+      <GameFacts game={game} onEdit={() => setIsEditModalOpen(true)} />
+
       {/* Activity Timeline */}
       {game.timeline && game.timeline.length > 0 && (
         <ActivityTimeline timeline={game.timeline} />
@@ -115,11 +119,11 @@ export default function GameDetailPage() {
       {/* Spacer */}
       <div className="h-20" />
 
-      <EditGameModal
+      <MetadataModal
         game={game}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onGameUpdated={(updatedGame) => setGame(updatedGame)}
+        onSaved={(updated) => setGame({ ...game, ...updated })}
       />
     </div>
   )
