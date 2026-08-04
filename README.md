@@ -10,6 +10,38 @@
 This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
 Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
 
+## Features
+
+- **Library Dashboard** - Browse your game collection at a glance
+- **Game Detail Page** - View detailed info for a game, with animations and navigation back to the library
+- **Search & Add Game** - Search IGDB for games and add them to your library
+
+## Getting Started
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Run the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+Other available commands:
+
+```bash
+pnpm build   # production build
+pnpm start   # run the production build
+pnpm lint    # lint the project
+```
+
+This project integrates with the IGDB API for game data, which requires a couple of environment variables to be configured. See [IGDB_SETUP.md](./IGDB_SETUP.md) for setup instructions.
+
 ## Deployment
 
 Your project is live at:
