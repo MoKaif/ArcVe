@@ -1,14 +1,16 @@
 'use client'
 
-import { GameCard, type Game } from './game-card'
+import { GameCard } from './game-card'
+import type { Game } from '@/types/game'
 
 interface GameGridProps {
   games: Game[]
   onViewDetails?: (game: Game) => void
   onViewMedia?: (game: Game) => void
+  onGameUpdated?: (game: Game) => void
 }
 
-export function GameGrid({ games, onViewDetails, onViewMedia }: GameGridProps) {
+export function GameGrid({ games, onViewDetails, onViewMedia, onGameUpdated }: GameGridProps) {
   if (games.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -43,6 +45,7 @@ export function GameGrid({ games, onViewDetails, onViewMedia }: GameGridProps) {
           game={game}
           onViewDetails={onViewDetails}
           onViewMedia={onViewMedia}
+          onGameUpdated={onGameUpdated}
         />
       ))}
     </div>

@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    restart: always
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      # Using host networking, localhost refers to the host machine
+      - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/arcve
+
+  frontend:
+    build:
+      context: .
+    restart: always
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      # Use the host's backend directly for server-side calls
+      - INTERNAL_BACKEND_URL=http://localhost:8000
