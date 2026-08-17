@@ -34,11 +34,11 @@ async function getAccessToken(): Promise<string> {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const gameId = params.id
-    console.log('[v0] Fetching game detail for ID:', gameId)
+    const { id } = await params
+    console.log('[v0] Fetching game detail for ID:', id)
 
     const accessToken = await getAccessToken()
 
@@ -49,7 +49,7 @@ export async function GET(
         'Client-ID': IGDB_CLIENT_ID!,
         Authorization: `Bearer ${accessToken}`,
       },
-      body: `fields name, cover.image_id, genres.name, first_release_date, platforms.name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, artworks.image_id, videos.video_id, videos.name; where id = ${gameId};`,
+      body: `fields name, cover.image_id, genres.name, first_release_date, platforms.name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, artworks.image_id, videos.video_id, videos.name; where id = ${id};`,
     })
 
     if (!gameResponse.ok) {
