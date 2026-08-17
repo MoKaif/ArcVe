@@ -69,7 +69,9 @@ export async function GET(request: NextRequest) {
       id: game.id.toString(),
       title: game.name,
       coverImage: game.cover?.url
-        ? `https://images.igdb.com/igdb/image/upload/t_cover_big${game.cover.url}`
+        ? game.cover.url.startsWith('//')
+          ? `https:${game.cover.url}`
+          : game.cover.url
         : '/placeholder.svg',
       releaseYear: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : undefined,
       genres: game.genres?.map((g) => g.name) || [],
