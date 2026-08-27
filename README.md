@@ -16,6 +16,14 @@ Any changes you make to your deployed app will be automatically pushed to this r
 - **Game Detail Page** - View detailed info for a game, with animations and navigation back to the library
 - **Search & Add Game** - Search IGDB for games and add them to your library
 
+## Project Structure
+
+- `app/` - Next.js routes, including page, layout, and loading files
+- `components/` - UI building blocks such as the filter bar and game grid
+- `lib/` - The IGDB client described in [IGDB_SETUP.md](./IGDB_SETUP.md)
+- `types/` - Shared game types
+- `public/` - Static assets
+
 ## Getting Started
 
 Install dependencies:
