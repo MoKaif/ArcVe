@@ -7,7 +7,6 @@ import { StatsOverview } from '@/components/stats-overview'
 import { AddGameModal } from '@/components/add-game/add-game-modal'
 import type { Game, GameStatus } from '@/types/game'
 import { Gamepad2, Loader2 } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
 import Loading from './loading'
 
 // Mock data
@@ -119,7 +118,6 @@ export default function HomePage() {
     'lastEngaged'
   )
   const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false)
-  const searchParams = useSearchParams()
 
   // Fetch games from IGDB API
   useEffect(() => {
