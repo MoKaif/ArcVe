@@ -218,6 +218,11 @@ export default function HomePage() {
     // Will be implemented with IGDB API integration
   }
 
+  const handleResetFilters = () => {
+    setSearchQuery('')
+    setStatusFilter('All')
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -269,6 +274,8 @@ export default function HomePage() {
         ) : (
           <GameGrid
             games={filteredGames}
+            isLibraryEmpty={games.length === 0}
+            onResetFilters={handleResetFilters}
             onViewDetails={handleViewDetails}
             onViewMedia={handleViewMedia}
           />
