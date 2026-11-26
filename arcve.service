@@ -1,0 +1,16 @@
+[Unit]
+Description=ArcVe game library
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Developing-Environment/ArcVe/ArcVe
+EnvironmentFile=-%h/Developing-Environment/ArcVe/ArcVe/.env
+ExecStart=%h/Developing-Environment/ArcVe/ArcVe/deploy/run-native.sh
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+
+[Install]
+WantedBy=default.target

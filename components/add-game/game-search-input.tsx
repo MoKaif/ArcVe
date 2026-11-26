@@ -24,7 +24,7 @@ export function GameSearchInput({ onSelect, isLoading: externalLoading }: GameSe
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showResults, setShowResults] = useState(false)
-  const searchTimeoutRef = useRef<NodeJS.Timeout>()
+  const searchTimeoutRef = useRef<NodeJS.Timeout>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -59,10 +59,10 @@ export function GameSearchInput({ onSelect, isLoading: externalLoading }: GameSe
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         console.log('[v0] Searching for games:', query)
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
-        const data = (await response.json()) as { results: SearchResult[] }
-        console.log('[v0] Search results:', data.results.length)
-        setResults(data.results)
+        const response = await fetch(`/api/games?query=${encodeURIComponent(query)}`)
+        const data = await response.json()
+        console.log('[v0] Search results:', data.length)
+        setResults(data)
       } catch (error) {
         console.error('[v0] Search error:', error)
         setResults([])

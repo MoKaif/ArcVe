@@ -1,0 +1,11 @@
+# Selects the prebuilt frontend image (see Dockerfile.prebuilt).
+#
+# Compose loads this file automatically. Delete or rename it to fall back to the
+# self-contained multi-stage build in ./Dockerfile, which resolves dependencies
+# inside the image but needs a healthy connection to the npm registry.
+#
+# Remember to run `npm run build` on the host before building the frontend.
+services:
+  frontend:
+    build:
+      dockerfile: Dockerfile.prebuilt

@@ -8,110 +8,12 @@ import { AddGameModal } from '@/components/add-game/add-game-modal'
 import type { Game, GameStatus } from '@/types/game'
 import { Gamepad2, Loader2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
+import { SteamButton } from '@/components/steam/steam-button'
 import Loading from './loading'
 
-// Mock data
-const mockGames: Game[] = [
-  {
-    id: '1',
-    title: 'The Legend of Zelda: Breath of the Wild',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co3p2d.jpg',
-    status: 'Finished',
-    platforms: ['Switch', 'Wii U'],
-    lastEngaged: '2 days ago',
-  },
-  {
-    id: '2',
-    title: 'Elden Ring',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg',
-    status: 'Active',
-    platforms: ['PC', 'PS5'],
-    lastEngaged: '1 hour ago',
-  },
-  {
-    id: '3',
-    title: 'Hollow Knight',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1rgi.jpg',
-    status: 'Backlog',
-    platforms: ['PC', 'Switch'],
-    lastEngaged: '3 weeks ago',
-  },
-  {
-    id: '4',
-    title: 'Cyberpunk 2077',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2of0.jpg',
-    status: 'Abandoned',
-    platforms: ['PC', 'PS5', 'Xbox'],
-    lastEngaged: '6 months ago',
-  },
-  {
-    id: '5',
-    title: 'Red Dead Redemption 2',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1q1f.jpg',
-    status: 'Finished',
-    platforms: ['PC', 'PS4', 'Xbox'],
-    lastEngaged: '1 month ago',
-  },
-  {
-    id: '6',
-    title: 'Hades',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2i8m.jpg',
-    status: 'Active',
-    platforms: ['PC', 'Switch'],
-    lastEngaged: '3 days ago',
-  },
-  {
-    id: '7',
-    title: 'The Witcher 3: Wild Hunt',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg',
-    status: 'Finished',
-    platforms: ['PC', 'PS4', 'Switch'],
-    lastEngaged: '2 months ago',
-  },
-  {
-    id: '8',
-    title: 'Stardew Valley',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co49wj.jpg',
-    status: 'Active',
-    platforms: ['PC', 'Mobile'],
-    lastEngaged: '5 days ago',
-  },
-  {
-    id: '9',
-    title: 'God of War Ragnarök',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg',
-    status: 'Backlog',
-    platforms: ['PS5'],
-    lastEngaged: 'Never',
-  },
-  {
-    id: '10',
-    title: 'Celeste',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1rgs.jpg',
-    status: 'Finished',
-    platforms: ['PC', 'Switch'],
-    lastEngaged: '4 months ago',
-  },
-  {
-    id: '11',
-    title: 'Dark Souls III',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1wzi.jpg',
-    status: 'Active',
-    platforms: ['PC', 'PS4'],
-    lastEngaged: '1 week ago',
-  },
-  {
-    id: '12',
-    title: 'Portal 2',
-    coverImage: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1rs5.jpg',
-    status: 'Finished',
-    platforms: ['PC', 'Xbox'],
-    lastEngaged: '1 year ago',
-  },
-]
-
 export default function HomePage() {
-  const [games, setGames] = useState<Game[]>(mockGames)
+  const [games, setGames] = useState<Game[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<GameStatus | 'All'>('All')
@@ -119,20 +21,29 @@ export default function HomePage() {
     'lastEngaged'
   )
   const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false)
+  const [steamHours, setSteamHours] = useState<number | null>(null)
   const searchParams = useSearchParams()
+
+  // Real total playtime, aggregated from the Steam library.
+  useEffect(() => {
+    fetch('/api/steam/overview')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setSteamHours(data.total_hours))
+      .catch(() => {})
+  }, [])
 
   // Fetch games from IGDB API
   useEffect(() => {
     async function fetchGames() {
       setIsLoading(true)
       console.log('[v0] Fetching games from IGDB API...')
-      
+
       try {
         const response = await fetch('/api/games')
         if (!response.ok) {
           throw new Error('Failed to fetch games')
         }
-        
+
         const data = await response.json()
         console.log('[v0] Received games:', data.length)
         setGames(data)
@@ -148,17 +59,48 @@ export default function HomePage() {
     fetchGames()
   }, [])
 
-  const handleAddGame = (newGame: any) => {
+  const handleAddGame = async (newGame: any) => {
     console.log('[v0] Adding new game to library:', newGame.title)
-    const gameToAdd: Game = {
-      id: newGame.id,
+
+    // Construct database model payload
+    const payload = {
+      igdb_id: parseInt(newGame.id),
       title: newGame.title,
-      coverImage: newGame.coverImage,
+      cover_image: newGame.coverImage,
       status: 'Backlog',
-      platforms: [],
-      lastEngaged: 'Just now',
+      platforms: newGame.platforms ? newGame.platforms.join(',') : '', // Assuming we get platforms from search? or default empty
+      release_year: newGame.releaseYear,
+      genres: newGame.genres ? newGame.genres.join(',') : '',
+      description: newGame.description,
+      last_engaged: 'Just now'
     }
-    setGames([gameToAdd, ...games])
+
+    try {
+      const response = await fetch('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save game to backend')
+      }
+
+      const savedGame = await response.json()
+
+      const gameToAdd: Game = {
+        id: savedGame.igdb_id.toString(),
+        title: savedGame.title,
+        coverImage: savedGame.cover_image || '/placeholder.svg',
+        status: savedGame.status as GameStatus,
+        platforms: savedGame.platforms ? savedGame.platforms.split(',') : [],
+        lastEngaged: savedGame.last_engaged,
+      }
+      setGames([gameToAdd, ...games])
+    } catch (error) {
+      console.error('[v0] Error saving game:', error)
+      // Optionally show toast error
+    }
   }
 
   // Filter and sort games
@@ -182,26 +124,15 @@ export default function HomePage() {
     if (sortBy === 'alphabetical') {
       sorted.sort((a, b) => a.title.localeCompare(b.title))
     } else if (sortBy === 'lastEngaged') {
-      // This is a simple example - you would implement proper date comparison
-      const engagementPriority: Record<string, number> = {
-        '1 hour ago': 1,
-        '2 days ago': 2,
-        '3 days ago': 3,
-        '5 days ago': 4,
-        '1 week ago': 5,
-        '3 weeks ago': 6,
-        '1 month ago': 7,
-        '2 months ago': 8,
-        '4 months ago': 9,
-        '6 months ago': 10,
-        '1 year ago': 11,
-        Never: 12,
+      // lastEngaged holds an ISO date (Steam sync writes rtime_last_played). An
+      // earlier version matched against relative strings like '2 days ago', which
+      // no longer occur, so every lookup missed and the sort did nothing.
+      const engagedAt = (game: Game) => {
+        if (!game.lastEngaged) return 0
+        const parsed = Date.parse(game.lastEngaged)
+        return Number.isNaN(parsed) ? 0 : parsed
       }
-      sorted.sort(
-        (a, b) =>
-          (engagementPriority[a.lastEngaged || 'Never'] || 99) -
-          (engagementPriority[b.lastEngaged || 'Never'] || 99)
-      )
+      sorted.sort((a, b) => engagedAt(b) - engagedAt(a))
     }
     // recentlyAdded would use creation date in real implementation
 
@@ -221,17 +152,23 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary p-2">
-                <Gamepad2 className="h-6 w-6 text-primary-foreground" />
+      <header className="border-b border-white/5 bg-background/60 backdrop-blur-xl sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative h-10 md:h-14 w-32 md:w-40 transition-transform hover:scale-105 duration-300">
+                <Image
+                  src="/logo.png"
+                  alt="ArcVe Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">ArcVe</h1>
-                <p className="text-xs text-muted-foreground">Game Library</p>
-              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <SteamButton />
             </div>
           </div>
         </div>
@@ -245,7 +182,7 @@ export default function HomePage() {
             totalGames: games.length,
             activeGames: games.filter((g) => g.status === 'Active').length,
             finishedGames: games.filter((g) => g.status === 'Finished').length,
-            totalHours: 342, // Mock data
+            totalHours: steamHours ?? 0,
           }}
         />
 
@@ -271,6 +208,9 @@ export default function HomePage() {
             games={filteredGames}
             onViewDetails={handleViewDetails}
             onViewMedia={handleViewMedia}
+            onGameUpdated={(updated) =>
+              setGames((prev) => prev.map((g) => (g.id === updated.id ? updated : g)))
+            }
           />
         )}
       </main>

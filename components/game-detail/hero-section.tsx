@@ -38,7 +38,7 @@ export function HeroSection({ game }: HeroSectionProps) {
           <div className="w-full md:w-64 lg:w-80 flex-shrink-0">
             <div className="relative aspect-[2/3] overflow-hidden rounded-lg border border-border shadow-2xl transition-transform duration-300 hover:scale-105">
               <Image
-                src={game.coverImage || "/placeholder.svg"}
+                src={game.coverImage || "/logo.png"}
                 alt={game.title}
                 fill
                 className="object-cover"

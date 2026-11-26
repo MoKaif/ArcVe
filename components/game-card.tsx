@@ -6,14 +6,16 @@ import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, ImageIcon } from 'lucide-react'
+import { Eye, ImageIcon, Pencil, AlertCircle, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Game, GameStatus } from '@/types/game'
+import { type Game, type GameStatus, missingMetadata } from '@/types/game'
+import { MetadataModal } from '@/components/game-detail/metadata-modal'
 
 interface GameCardProps {
   game: Game
   onViewDetails?: (game: Game) => void
   onViewMedia?: (game: Game) => void
+  onGameUpdated?: (game: Game) => void
 }
 
 const statusColors: Record<GameStatus, string> = {
@@ -23,15 +25,27 @@ const statusColors: Record<GameStatus, string> = {
   Abandoned: 'bg-muted text-muted-foreground',
 }
 
-export function GameCard({ game, onViewDetails, onViewMedia }: GameCardProps) {
+export function GameCard({ game, onViewDetails, onViewMedia, onGameUpdated }: GameCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
 
   const handleViewDetails = () => {
     router.push(`/game/${game.id}`)
   }
 
+  const missing = missingMetadata(game)
+  const playtimeMinutes = game.manualPlaytimeMinutes ?? game.playtimeMinutes ?? 0
+  const hours = playtimeMinutes / 60
+
   return (
+    <>
+    <MetadataModal
+      game={game}
+      isOpen={isEditing}
+      onClose={() => setIsEditing(false)}
+      onSaved={(updated) => onGameUpdated?.(updated)}
+    />
     <Card
       className={cn(
         'group relative overflow-hidden border-border bg-card transition-all duration-300 min-w-[200px] cursor-pointer',
@@ -44,7 +58,7 @@ export function GameCard({ game, onViewDetails, onViewMedia }: GameCardProps) {
       {/* Cover Image */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted/30">
         <Image
-          src={game.coverImage || "/placeholder.svg"}
+          src={game.coverImage || "/logo.png"}
           alt={game.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, (max-width: 1536px) 16vw, 14vw"
@@ -92,24 +106,73 @@ export function GameCard({ game, onViewDetails, onViewMedia }: GameCardProps) {
                 <ImageIcon className="mr-2 h-4 w-4" />
                 Media
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsEditing(true)
+                }}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Details
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Status Badge */}
-        <div className="absolute top-2 right-2">
+        {/* Status + always-visible edit. The hover overlay is unreachable on
+            touch devices, so editing cannot live there alone. */}
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+          <button
+            type="button"
+            aria-label={`Edit details for ${game.title}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsEditing(true)
+            }}
+            className="flex h-6 w-6 items-center justify-center rounded-md bg-background/70 text-muted-foreground opacity-80 ring-1 ring-white/10 backdrop-blur-sm transition-all hover:bg-background hover:text-foreground hover:opacity-100"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
           <Badge className={cn('text-xs font-medium', statusColors[game.status])}>
             {game.status}
           </Badge>
         </div>
+
+        {/* Incomplete metadata marker — click to fill it in */}
+        {missing.length > 0 && (
+          <button
+            type="button"
+            title={`Missing: ${missing.join(', ')}`}
+            aria-label={`Missing metadata: ${missing.join(', ')}. Click to edit.`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsEditing(true)
+            }}
+            className="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-amber-500/20 px-1.5 py-1 text-amber-300 ring-1 ring-amber-500/30 backdrop-blur-sm transition-colors hover:bg-amber-500/30"
+          >
+            <AlertCircle className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-bold">{missing.length}</span>
+          </button>
+        )}
       </div>
 
       {/* Game Info */}
       <div className="p-3 space-y-2">
         {/* Title */}
-        <h3 className="text-sm font-semibold leading-tight line-clamp-2 text-foreground">
-          {game.title}
-        </h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm font-semibold leading-tight line-clamp-2 text-foreground">
+            {game.title}
+          </h3>
+          {hours > 0 && (
+            <span className="flex flex-shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {hours >= 1 ? `${hours.toFixed(0)}h` : `${Math.round(hours * 60)}m`}
+            </span>
+          )}
+        </div>
 
         {/* Platform Badges */}
         <div className="flex flex-wrap gap-1">
@@ -125,5 +188,6 @@ export function GameCard({ game, onViewDetails, onViewMedia }: GameCardProps) {
         </div>
       </div>
     </Card>
+    </>
   )
 }

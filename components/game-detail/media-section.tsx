@@ -37,7 +37,7 @@ export function MediaSection({ videos }: MediaSectionProps) {
             <div className="relative aspect-video overflow-hidden rounded-lg border border-border bg-muted transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/10">
               {/* Thumbnail */}
               <Image
-                src={video.thumbnail || "/placeholder.svg"}
+                src={video.thumbnail || "/logo.png"}
                 alt={video.title}
                 fill
                 className="object-cover"
