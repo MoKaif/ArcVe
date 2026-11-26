@@ -16,6 +16,12 @@ Your project is live at:
 
 **[https://vercel.com/noxfreak4-6418s-projects/v0-arc-ve](https://vercel.com/noxfreak4-6418s-projects/v0-arc-ve)**
 
+For the personal server, build with `npm run build` and install
+`arcve.service` as a user unit. `deploy/run-native.sh` runs the production
+Next.js server and FastAPI backend on loopback ports 13000 and 18000. Host
+Caddy publishes the UI on port 3000. PostgreSQL remains the native host
+service; Docker is optional for isolated development only.
+
 ## Build your app
 
 Continue building your app on:
